@@ -29,11 +29,11 @@
       <el-table-column label="面试场次" width="150px" align="center" prop="interviewFrequency" />
       <el-table-column label="面试人数" width="150px" align="center" prop="interviewNumber" />
       <el-table-column label="Actions" align="center" width="230" class-name="small-padding fixed-width">
-        <template slot-scope="{row,$index}">
+        <template slot-scope="{row}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             修改
           </el-button>
-          <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleDelete(row,$index)">
+          <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleDelete(row)">
             删除
           </el-button>
         </template>
@@ -167,7 +167,14 @@ export default {
         // 报错
       }
     },
-    updateData() {}
+    updateData() {},
+    handleUpdate() {},
+    async handleDelete(row) {
+      const res = await interviewerApis.deleteInterviewer({ userId: row._id })
+      if (res) {
+        this.getList()
+      }
+    }
   }
 }
 </script>

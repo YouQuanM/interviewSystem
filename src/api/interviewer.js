@@ -15,3 +15,11 @@ export function addInterviewer(query) {
     params: query
   })
 }
+
+export function deleteInterviewer(query) {
+  return request({
+    url: 'deleteInterviewer',
+    method: 'get',
+    params: query
+  })
+}
