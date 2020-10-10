@@ -23,3 +23,14 @@ export function deleteInterviewer(query) {
     params: query
   })
 }
+
+export function editInterviewer(id, query) {
+  return request({
+    url: 'editInterviewer',
+    method: 'get',
+    params: {
+      id,
+      query
+    }
+  })
+}

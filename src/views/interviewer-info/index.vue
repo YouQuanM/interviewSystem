@@ -28,7 +28,8 @@
       <el-table-column label="培训/复训日期" align="center" prop="trainingDate" />
       <el-table-column label="面试场次" width="150px" align="center" prop="interviewFrequency" />
       <el-table-column label="面试人数" width="150px" align="center" prop="interviewNumber" />
-      <el-table-column label="Actions" align="center" width="230" class-name="small-padding fixed-width">
+      <el-table-column label="通过人数" width="150px" align="center" prop="passNumber" />
+      <el-table-column label="操作" align="center" width="230" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             修改
@@ -39,15 +40,22 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      layout="total, prev, pager, next"
+      :page-size="20"
+      :current-page.sync="currentPage"
+      :total="total"
+      @current-change="handleCurrentChange"
+    />
 
     <!-- 新增弹窗 -->
     <el-dialog title="新增面试官" :visible.sync="addEditDialogFlag">
       <el-form ref="dataForm" label-position="left" label-width="200px" style="margin-left:50px;">
         <el-form-item label="姓名">
-          <el-input v-model="addEditForm.name" placeholder="面试官名字" style="width: 200px;" />
+          <el-input v-model="addEditForm.name" placeholder="面试官名字" style="width: 200px;" :disabled="!(dialogStatus==='create')" />
         </el-form-item>
         <el-form-item label="性别">
-          <el-radio-group v-model="addEditForm.gender">
+          <el-radio-group v-model="addEditForm.gender" :disabled="!(dialogStatus==='create')">
             <el-radio label="男" />
             <el-radio label="女" />
           </el-radio-group>
@@ -84,6 +92,9 @@
         <el-form-item label="面试人数">
           <el-input v-model="addEditForm.interviewNumber" />
         </el-form-item>
+        <el-form-item label="通过人数">
+          <el-input v-model="addEditForm.passNumber" />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addEditDialogFlag = false">
@@ -108,6 +119,8 @@ export default {
     return {
       listLoading: false,
       list: [],
+      currentPage: 1,
+      total: 0,
       searchParams: {
         name: ''
       },
@@ -135,7 +148,8 @@ export default {
         workingTerritory: '',
         trainingDate: '',
         interviewFrequency: '',
-        interviewNumber: ''
+        interviewNumber: '',
+        passNumber: ''
       }
     }
   },
@@ -145,10 +159,15 @@ export default {
   methods: {
     async getList() {
       this.listLoading = true
-      const params = this.searchParams.name ? { name: this.searchParams.name } : {}
+      const params = {
+        pageNum: this.currentPage,
+        pageSize: 20
+      }
+      if (this.searchParams.name) params.name = this.searchParams.name
       const res = await interviewerApis.getList(params)
       if (res.success) {
-        this.list = res.data
+        this.list = res.data.result
+        this.total = res.data.total
       } else {
         // 报错
       }
@@ -156,24 +175,63 @@ export default {
     },
     handleCreate() {
       this.addEditDialogFlag = true
+      this.dialogStatus = 'create'
+      this.addEditForm = {
+        name: '',
+        gender: '',
+        affiliatedCompany: '',
+        department: '',
+        jobTitle: '',
+        level: '',
+        workingTerritory: '',
+        trainingDate: '',
+        interviewFrequency: '',
+        interviewNumber: '',
+        passNumber: ''
+      }
     },
     async createData() {
-      console.log(this.addEditForm)
-      const res = interviewerApis.addInterviewer(this.addEditForm)
+      const res = await interviewerApis.addInterviewer(this.addEditForm)
       if (res.success) {
         this.$message('添加成功')
+        this.addEditDialogFlag = false
         this.getList()
       } else {
         // 报错
       }
     },
-    updateData() {},
-    handleUpdate() {},
-    async handleDelete(row) {
-      const res = await interviewerApis.deleteInterviewer({ userId: row._id })
-      if (res) {
+    async updateData() {
+      const res = await interviewerApis.editInterviewer(this.editId, this.addEditForm)
+      if (res.success) {
+        this.$message('修改成功')
+        this.addEditDialogFlag = false
         this.getList()
+      } else {
+        // 报错
       }
+    },
+    handleUpdate(row) {
+      this.addEditDialogFlag = true
+      // debugger
+      this.addEditForm = row
+      this.editId = row._id
+      this.dialogStatus = 'edit'
+    },
+    async handleDelete(row) {
+      this.$confirm('此操作删除该面试官, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async() => {
+        const res = await interviewerApis.deleteInterviewer({ userId: row._id })
+        if (res) {
+          this.getList()
+        }
+      }).catch(() => {}) // do nothing
+    },
+    handleCurrentChange(index) {
+      this.currentPage = index
+      this.getList()
     }
   }
 }
