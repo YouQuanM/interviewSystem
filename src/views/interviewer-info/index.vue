@@ -8,6 +8,10 @@
       <el-button class="filter-item" style="margin-left: 10px;" type="success" icon="el-icon-edit" @click="handleCreate">
         新增
       </el-button>
+      <el-switch
+        v-model="searchParams.alert"
+        active-text="需培训"
+      />
     </div>
 
     <el-table
@@ -25,7 +29,11 @@
       <el-table-column label="职务" width="150px" align="center" prop="jobTitle" />
       <el-table-column label="面试官级别" width="150px" align="center" prop="level" />
       <el-table-column label="工作属地" width="150px" align="center" prop="workingTerritory" />
-      <el-table-column label="培训/复训日期" align="center" prop="trainingDate" />
+      <el-table-column label="培训/复训日期" align="center" prop="trainingDate">
+        <template slot-scope="{row}">
+          <span>{{ getTimes(row.trainingDate) }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="面试场次" width="150px" align="center" prop="interviewFrequency" />
       <el-table-column label="面试人数" width="150px" align="center" prop="interviewNumber" />
       <el-table-column label="通过人数" width="150px" align="center" prop="passNumber" />
@@ -84,6 +92,7 @@
             v-model="addEditForm.trainingDate"
             type="date"
             placeholder="选择日期"
+            value-format="timestamp"
           />
         </el-form-item>
         <el-form-item label="面试场次">
@@ -122,7 +131,8 @@ export default {
       currentPage: 1,
       total: 0,
       searchParams: {
-        name: ''
+        name: '',
+        alert: false
       },
       // 弹窗
       addEditDialogFlag: false,
@@ -163,14 +173,29 @@ export default {
         pageNum: this.currentPage,
         pageSize: 20
       }
-      if (this.searchParams.name) params.name = this.searchParams.name
-      const res = await interviewerApis.getList(params)
-      if (res.success) {
-        this.list = res.data.result
-        this.total = res.data.total
-      } else {
+      if (this.searchParams.alert) {
+        params.alert = true
+        const res = await interviewerApis.getList(params)
+        if (res.success) {
+          this.list = res.data.result
+          this.total = res.data.total
+        } else {
         // 报错
+        }
+      } else {
+        params.alert = false
+        if (this.searchParams.name) params.name = this.searchParams.name
+        const res = await interviewerApis.getList(params)
+        if (res.success) {
+          this.list = res.data.result
+          this.total = res.data.total
+        } else {
+        // 报错
+        }
       }
+
+      // const res = await interviewerApis.getList(params)
+
       this.listLoading = false
     },
     handleCreate() {
@@ -232,6 +257,14 @@ export default {
     handleCurrentChange(index) {
       this.currentPage = index
       this.getList()
+    },
+    handleGetAlertMembers() {
+      this.searchParams.alert = true
+      this.getList()
+    },
+    getTimes(time) {
+      const currTimeDate = new Date(Number(time))
+      return `${currTimeDate.getFullYear()}-${currTimeDate.getMonth() + 1}-${currTimeDate.getDate()}`
     }
   }
 }
