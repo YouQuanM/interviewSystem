@@ -12,6 +12,9 @@
         v-model="searchParams.alert"
         active-text="需培训"
       />
+      <el-button class="filter-item" style="margin-left: 10px;" type="success" icon="el-icon-download" @click="handleDownload">
+        下载
+      </el-button>
     </div>
 
     <el-table
@@ -265,6 +268,9 @@ export default {
     getTimes(time) {
       const currTimeDate = new Date(Number(time))
       return `${currTimeDate.getFullYear()}-${currTimeDate.getMonth() + 1}-${currTimeDate.getDate()}`
+    },
+    handleDownload() {
+      window.open('http://127.0.0.1:7001/api/downloadExcel')
     }
   }
 }
