@@ -12,6 +12,9 @@
         v-model="searchParams.alert"
         active-text="需培训"
       />
+      <el-button class="filter-item" style="margin-left: 10px;" type="success" icon="el-icon-upload2" @click="handleUpload">
+        上传
+      </el-button>
       <el-button class="filter-item" style="margin-left: 10px;" type="success" icon="el-icon-download" @click="handleDownload">
         下载
       </el-button>
@@ -271,6 +274,10 @@ export default {
     },
     handleDownload() {
       window.open('http://127.0.0.1:7001/api/downloadExcel')
+    },
+    async handleUpload() {
+      const res = await interviewerApis.uploadExcel()
+      console.log(res)
     }
   }
 }

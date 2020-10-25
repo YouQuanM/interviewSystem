@@ -34,3 +34,10 @@ export function editInterviewer(id, query) {
     }
   })
 }
+
+export function uploadExcel() {
+  return request({
+    url: 'excel',
+    method: 'get'
+  })
+}
